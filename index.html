@@ -1,1 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>随机点名器</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #1a1f2e, #2d3a5c);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 24px 16px;
+    color: #fff;
+  }
+  .container {
+    width: 100%;
+    max-width: 480px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 28px 24px;
+    backdrop-filter: blur(10px);
+  }
+  h1 {
+    text-align: center;
+    font-size: 22px;
+    margin-bottom: 4px;
+    letter-spacing: 2px;
+  }
+  .sub {
+    text-align: center;
+    font-size: 13px;
+    color: #9aa5c0;
+    margin-bottom: 20px;
+  }
+  #resultBox {
+    height: 110px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  #resultName {
+    font-size: 40px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    background: linear-gradient(90deg, #7ee8a2, #4fd1c5);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-align: center;
+    padding: 0 12px;
+  }
+  #resultName.dim { color: #6b7590; -webkit-text-fill-color: #6b7590; background: none; font-size: 22px; }
+  #resultName.rolling { color: #fff; -webkit-text-fill-color: #fff; }
+  .stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #9aa5c0;
+    margin-bottom: 16px;
+  }
+  .btns { display: flex; gap: 12px; margin-bottom: 20px; }
+  button {
+    flex: 1;
+    padding: 14px 0;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform .1s, opacity .2s;
+    letter-spacing: 2px;
+  }
+  button:active { transform: scale(0.96); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  #drawBtn { background: linear-gradient(135deg, #34c77b, #2aa864); color: #fff; }
+  #resetBtn {
+    flex: 0 0 110px;
+    background: rgba(255,255,255,0.12);
+    color: #dfe6f5;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .section-title {
+    font-size: 14px;
+    color: #c3cce3;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title .tag { font-size: 12px; color: #7ee8a2; }
+  #pickedList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 34px;
+    margin-bottom: 20px;
+  }
+  .chip {
+    background: rgba(126,232,162,0.15);
+    border: 1px solid rgba(126,232,162,0.4);
+    color: #a9f0c4;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+  }
+  .empty-tip { font-size: 13px; color: #6b7590; }
+  textarea {
+    width: 100%;
+    height: 90px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    color: #e8edf7;
+    padding: 10px 12px;
+    font-size: 14px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+  textarea:focus { outline: none; border-color: #4fd1c5; }
+  #updateBtn {
+    margin-top: 10px;
+    padding: 9px 0;
+    font-size: 14px;
+    width: 100%;
+    background: rgba(79,209,197,0.18);
+    border: 1px solid rgba(79,209,197,0.45);
+    color: #8be6de;
+    letter-spacing: 1px;
+  }
+  .hint { font-size: 12px; color: #6b7590; margin-top: 10px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🎲 随机点名器</h1>
+  <div class="sub">抽过的人不会被重复抽到 · 点重置可重新开始</div>
+
+  <div id="resultBox">
+    <div id="resultName" class="dim">点击下方按钮开始</div>
+  </div>
+
+  <div class="stats">
+    <span>已抽出：<b id="pickedCount">0</b> 人</span>
+    <span>剩余：<b id="remainCount">0</b> 人</span>
+  </div>
+
+  <div class="btns">
+    <button id="drawBtn">开始抽取</button>
+    <button id="resetBtn">重 置</button>
+  </div>
+
+  <div class="section-title">已抽名单 <span class="tag" id="orderTag"></span></div>
+  <div id="pickedList"><span class="empty-tip">还没有人被抽到～</span></div>
+
+  <div class="section-title">名单设置（一行一个名字）</div>
+  <textarea id="nameInput"></textarea>
+  <button id="updateBtn">更新名单（会清空当前抽取记录）</button>
+  <div class="hint">💡 名单和记录会自动保存在浏览器里，下次打开还在。适合班会抽人自我介绍、上课随机提问点名。</div>
+</div>
+
+<script>
+  const nameInput   = document.getElementById('nameInput');
+  const drawBtn     = document.getElementById('drawBtn');
+  const resetBtn    = document.getElementById('resetBtn');
+  const updateBtn   = document.getElementById('updateBtn');
+  const resultName  = document.getElementById('resultName');
+  const pickedList  = document.getElementById('pickedList');
+  const pickedCount = document.getElementById('pickedCount');
+  const remainCount = document.getElementById('remainCount');
+  const orderTag    = document.getElementById('orderTag');
+
+  // ======== 班级名单（40人）========
+  const DEFAULT_NAMES = [
+    '黄婷婷','王艺珂','李嘉楠','周佳妮','王雅雅','郭欣悦','赵家玲','李佳妮','王子熠','王梦涵',
+    '时雨豪','黄子涵','张晓冉','史世芳','霍怡然','连彤彤','于悦','翟嘉茗','高怡翔','陈晓茹','胡可馨',
+    '李雨洋','曹铄','鲁云赫','王淩','宋永泽','刘振曦','樊宇航','施证轩','张木','吴奥运',
+    '贾智阳','樊光辉','张宸硕','马赫祥','常智豪','谢顺琪','陈家宝','王怡春','王羿森'
+  ];
+
+  let names = [];      // 全部名单
+  let remaining = [];  // 还没被抽到的
+  let picked = [];     // 已抽到的（按顺序）
+  let rolling = false; // 是否正在滚动动画
+
+  // ---------- 数据存取 ----------
+  function save() {
+    localStorage.setItem('rollcall_names_v2', JSON.stringify(names));
+    localStorage.setItem('rollcall_picked_v2', JSON.stringify(picked));
+  }
+  function load() {
+    try {
+      names = JSON.parse(localStorage.getItem('rollcall_names_v2')) || [];
+      picked = JSON.parse(localStorage.getItem('rollcall_picked_v2')) || [];
+    } catch (e) { names = []; picked = []; }
+    if (!names.length) {
+      names = [...DEFAULT_NAMES];
+      picked = [];
+    }
+    rebuildRemaining();
+    nameInput.value = names.join('\n');
+  }
+  function rebuildRemaining() {
+    remaining = names.filter(n => !picked.includes(n));
+  }
+
+  // ---------- 界面刷新 ----------
+  function render() {
+    pickedCount.textContent = picked.length;
+    remainCount.textContent = remaining.length;
+    if (picked.length === 0) {
+      pickedList.innerHTML = '<span class="empty-tip">还没有人被抽到～</span>';
+      orderTag.textContent = '';
+    } else {
+      pickedList.innerHTML = picked
+        .map((n, i) => `<span class="chip">${i + 1}. ${n}</span>`)
+        .join('');
+      orderTag.textContent = '（按抽取顺序）';
+    }
+    drawBtn.disabled = rolling || remaining.length === 0;
+    drawBtn.textContent = remaining.length === 0 && !rolling ? '已全部抽完' : '开始抽取';
+  }
+
+  // ---------- 抽取 ----------
+  function draw() {
+    if (rolling || remaining.length === 0) return;
+    rolling = true;
+    drawBtn.disabled = true;
+    resultName.classList.add('rolling');
+    resultName.classList.remove('dim');
+
+    let ticks = 0;
+    const total = 24;
+    const timer = setInterval(() => {
+      resultName.textContent = remaining[Math.floor(Math.random() * remaining.length)];
+      ticks++;
+      if (ticks >= total) {
+        clearInterval(timer);
+        const idx = Math.floor(Math.random() * remaining.length);
+        const winner = remaining.splice(idx, 1)[0];
+        picked.push(winner);
+        resultName.textContent = winner;
+        resultName.classList.remove('rolling');
+        rolling = false;
+        save();
+        render();
+      }
+    }, 80);
+  }
+
+  // ---------- 重置 ----------
+  function reset() {
+    if (rolling) return;
+    picked = [];
+    rebuildRemaining();
+    resultName.textContent = '已重置，点击开始';
+    resultName.classList.add('dim');
+    save();
+    render();
+  }
+
+  // ---------- 更新名单 ----------
+  function updateNames() {
+    const list = nameInput.value
+      .split('\n')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+    if (list.length === 0) {
+      alert('名单不能为空哦，请至少输入一个名字！');
+      return;
+    }
+    names = list;
+    picked = [];
+    rebuildRemaining();
+    resultName.textContent = '名单已更新';
+    resultName.classList.add('dim');
+    save();
+    render();
+  }
+
+  drawBtn.addEventListener('click', draw);
+  resetBtn.addEventListener('click', reset);
+  updateBtn.addEventListener('click', updateNames);
+
+  load();
+  render();
+</script>
+</body>
+</html>
+
 
