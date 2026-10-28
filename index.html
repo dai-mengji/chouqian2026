@@ -179,11 +179,11 @@
   const remainCount = document.getElementById('remainCount');
   const orderTag    = document.getElementById('orderTag');
 
-  // ======== 班级名单（40人）========
+  // ======== 班级名单（40人，已核对修正）========
   const DEFAULT_NAMES = [
-    '黄婷婷','王艺珂','李嘉楠','周佳妮','王雅雅','郭欣悦','赵家玲','李佳妮','王子熠','王梦涵',
-    '时雨豪','黄子涵','张晓冉','史世芳','霍怡然','连彤彤','于悦','翟嘉茗','高怡翔','陈晓茹','胡可馨',
-    '李雨洋','曹铄','鲁云赫','王淩','宋永泽','刘振曦','樊宇航','施证轩','张木','吴奥运',
+    '贾婷婷','王艺珂','李嘉楠','周佳妮','王雅雅','郭欣悦','赵家玲','李佳妮','王子熠','王梦涵',
+    '时雨蒙','黄子涵','张晓冉','史世芳','霍怡然','连彤彤','于悦','翟昱茗','高怡翔','陈晓茹','胡可馨',
+    '李雨洋','崔璨','崔云赫','王涛','宋承泽','刘振曦','樊宇航','施亚轩','张杰','吴奥运',
     '贾智阳','樊光辉','张宸硕','马赫祥','常智豪','谢顺琪','陈家宝','王怡春','王羿森'
   ];
 
@@ -194,13 +194,13 @@
 
   // ---------- 数据存取 ----------
   function save() {
-    localStorage.setItem('rollcall_names_v2', JSON.stringify(names));
-    localStorage.setItem('rollcall_picked_v2', JSON.stringify(picked));
+    localStorage.setItem('rollcall_names_v3', JSON.stringify(names));
+    localStorage.setItem('rollcall_picked_v3', JSON.stringify(picked));
   }
   function load() {
     try {
-      names = JSON.parse(localStorage.getItem('rollcall_names_v2')) || [];
-      picked = JSON.parse(localStorage.getItem('rollcall_picked_v2')) || [];
+      names = JSON.parse(localStorage.getItem('rollcall_names_v3')) || [];
+      picked = JSON.parse(localStorage.getItem('rollcall_picked_v3')) || [];
     } catch (e) { names = []; picked = []; }
     if (!names.length) {
       names = [...DEFAULT_NAMES];
@@ -296,5 +296,4 @@
 </script>
 </body>
 </html>
-
 
